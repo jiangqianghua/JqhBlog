@@ -1,0 +1,6 @@
+.footer-div{
+    text-align: center;
+    width: 100%;
+    page-break-after: 1rem;
+    counter-reset: #888;
+}
