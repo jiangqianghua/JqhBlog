@@ -5,13 +5,39 @@ import Advert from '../components/Advert'
 import Footer from '../components/Footer'
 import {Row, Col, List, Icon, Breadcrumb, Affix} from 'antd'
 import '../static/style/pages/detailed.css'
-import ReactMarkdown from 'react-markdown'
+import marked from 'marked'
+import hljs from 'highlight.js'
+import 'highlight.js/styles/monokai-sublime.css'
 import MarkNav from 'markdown-navbar'
 import 'markdown-navbar/dist/navbar.css'
 import axios from 'axios'
+import Tocify from '../components/tocify.tsx'
+import servicePath from '../config/apiUrl'
 
-const Detailed = (data) => {
-  
+const Detailed = (props) => {  
+const renderer = new marked.Renderer();
+const tocify = new Tocify()
+renderer.heading = function(text, level, raw) {
+      const anchor = tocify.add(text, level);
+      return `<a id="${anchor}" href="#${anchor}" class="anchor-fix"><h${level}>${text}</h${level}></a>\n`;
+    };
+
+marked.setOptions({
+    renderer: renderer, 
+    gfm: true,
+    pedantic: false,
+    sanitize: false,
+    tables: true,
+    breaks: false,
+    smartLists: true,
+    smartypants: false,
+    highlight: function (code) {
+            return hljs.highlightAuto(code).value;
+    }
+  }); 
+
+  let markHtml = marked(props.article_content) 
+
   return (
     <>
       <Head>
@@ -22,22 +48,22 @@ const Detailed = (data) => {
           <div className="break-div">
             <Breadcrumb>
               <Breadcrumb.Item><a href="/">首页</a></Breadcrumb.Item>
-              <Breadcrumb.Item><a href="/list">{data.typeName}列表</a></Breadcrumb.Item>
+              <Breadcrumb.Item><a href="/list">{props.typeName}列表</a></Breadcrumb.Item>
               <Breadcrumb.Item>XXXXX</Breadcrumb.Item>
             </Breadcrumb>
           </div>
           <div>
             <div className="detailed-title">
-              {data.title}
+              {props.title}
             </div>
             <div class="list-icon center">
                 <span><Icon type="calender"/> 2020-07-22 </span>
                 <span><Icon type="folder"/> 视频教程 </span>
                 <span><Icon type="fired"/> 1000 </span>
             </div>
-            <div className="detailed-content">
-              <ReactMarkdown source={data.article_content}
-              escapeHtml={false}></ReactMarkdown>
+            <div className="detailed-content"
+            dangerouslySetInnerHTML={{__html: markHtml}}>
+        
             </div>
           </div>
         </Col>
@@ -47,12 +73,7 @@ const Detailed = (data) => {
           <Affix offsetTop={5}> 
           <div className="detailed-nav comm-box">
             <div className="nav-title">文章目录</div>
-            <MarkNav
-            className="article-menu"
-            source={data.article_content}
-            headingTopOffset={0}
-            ordered={false}
-            ></MarkNav>
+            {tocify && tocify.render()}
           </div>
           </Affix>
          
@@ -69,7 +90,7 @@ Detailed.getInitialProps = async (context) => {
   console.log(context.query.id)
   let id = context.query.id
   const promise = new Promise((resolve) => {
-    axios.get('http://127.0.0.1:7001/default/getArticleById/' + id).then(
+    axios.get(servicePath.getArticleById + '/' + id).then(
       (res) => {
         console.log(res)
         resolve(res.data.data[0])

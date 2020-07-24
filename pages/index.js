@@ -7,6 +7,7 @@ import {Row, Col, List, Icon} from 'antd'
 import Link from 'next/link'
 import '../static/style/pages/index.css'
 import axios from 'axios';
+import servicePath from '../config/apiUrl'
 const Home = (list) => {
   const [ mylist , setMylist ] = useState(list.data)
 
@@ -52,7 +53,7 @@ export  default Home
 // 从服务器获取数据
 Home.getInitialProps = async () => {
   const promise = new Promise((resolve) => {
-    axios('http://127.0.0.1:7001/default/getArticleList').then(
+    axios(servicePath.getArticleList).then(
       (res) => {
         console.log('远程获取数据:', res.data.data )
         resolve(res.data)
